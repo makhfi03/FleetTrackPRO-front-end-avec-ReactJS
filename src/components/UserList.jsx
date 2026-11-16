@@ -28,9 +28,6 @@ export default function UserList({
             {currentUser && (
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-sm">
-                            ADM
-                        </div>
                         <div>
                             <div className="flex items-center gap-2">
                                 <span className="font-bold text-white text-sm">
@@ -47,9 +44,6 @@ export default function UserList({
                                 Compte Administrateur système connecté ({currentUser.email})
                             </p>
                         </div>
-                    </div>
-                    <div className="text-xs text-slate-500 italic max-w-xs text-left sm:text-right">
-                        Écriture et création d'admins non exposées par l'API v1 (écart consigné dans le contrat).
                     </div>
                 </div>
             )}

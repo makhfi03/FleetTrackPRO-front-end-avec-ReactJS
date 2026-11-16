@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { loginApi, logoutApi } from './api/auth.api';
 import { getChauffeursApi, createChauffeurApi, updateChauffeurStatusApi } from './api/users.api';
 import { getCamionsApi, createCamionApi, updateCamionApi, archiveCamionApi } from './api/trucks.api';
+import { getMyTrajetsApi } from './api/driver.api';
 import LoginForm from './components/LoginForm';
 import AppShell from './components/AppShell';
 import ProtectedView from './components/ProtectedView';
 import AdminLayout from './layouts/AdminLayout';
+import DriverLayout from './layouts/DriverLayout';
 import UserList from './components/UserList';
 import UserForm from './components/UserForm';
 import TruckList from './components/TruckList';
 import TruckDetails from './components/TruckDetails';
 import TruckForm from './components/TruckForm';
+import DriverTrips from './components/DriverTrips';
 
 export default function App() {
     const [session, setSession] = useState(null);
@@ -34,6 +37,10 @@ export default function App() {
     const [isTruckSubmitting, setIsTruckSubmitting] = useState(false);
     const [truckFormError, setTruckFormError] = useState('');
     const [isArchiving, setIsArchiving] = useState(false);
+
+    const [driverTrips, setDriverTrips] = useState([]);
+    const [isTripsLoading, setIsTripsLoading] = useState(false);
+    const [tripsError, setTripsError] = useState('');
 
     const loadUsers = async (token) => {
         setIsUsersLoading(true);
@@ -61,6 +68,19 @@ export default function App() {
         }
     };
 
+    const loadDriverTrips = async (token) => {
+        setIsTripsLoading(true);
+        setTripsError('');
+        try {
+            const data = await getMyTrajetsApi(token);
+            setDriverTrips(data);
+            setIsTripsLoading(false);
+        } catch (err) {
+            setTripsError(err.message);
+            setIsTripsLoading(false);
+        }
+    };
+
     const handleLogin = async ({ email, password }) => {
         setIsAuthLoading(true);
         setAuthError('');
@@ -76,6 +96,7 @@ export default function App() {
                 await loadUsers(userToken);
             } else {
                 setActiveTab('trajets');
+                await loadDriverTrips(userToken);
             }
 
             return true;
@@ -94,6 +115,7 @@ export default function App() {
         setSession(null);
         setUsers([]);
         setTrucks([]);
+        setDriverTrips([]);
         setSelectedTruck(null);
         setTruckFormMode(null);
         setIsCreatingUser(false);
@@ -285,12 +307,14 @@ export default function App() {
                     </AdminLayout>
                 </ProtectedView>
             ) : (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-2">Espace Chauffeur</h3>
-                    <p className="text-slate-400 text-sm">
-                        Bienvenue dans votre espace Chauffeur. L'accès aux données administrateur est restreint.
-                    </p>
-                </div>
+                <DriverLayout user={session.user}>
+                    <DriverTrips
+                        trips={driverTrips}
+                        isLoading={isTripsLoading}
+                        errorMessage={tripsError}
+                        onRefresh={() => loadDriverTrips(currentToken)}
+                    />
+                </DriverLayout>
             )}
         </AppShell>
     );
