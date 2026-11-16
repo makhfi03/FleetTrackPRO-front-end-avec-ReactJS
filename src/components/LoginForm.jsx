@@ -100,9 +100,7 @@ export default function LoginForm({ onLogin, isLoading, errorMessage }) {
                 </form>
 
                 <div className="mt-8 pt-6 border-t border-slate-700/60 text-center">
-                    <p className="text-xs text-slate-400">
-                        Comptes de test : <span className="text-slate-300 font-mono">admin@flotte.com</span> (mdp: <span className="text-slate-300 font-mono">Admin123!</span>)
-                    </p>
+                    */}
                 </div>
             </div>
         </div>

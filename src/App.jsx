@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { loginApi, logoutApi } from './api/auth.api';
 import { getChauffeursApi, createChauffeurApi, updateChauffeurStatusApi } from './api/users.api';
+import { getCamionsApi, createCamionApi, updateCamionApi, archiveCamionApi } from './api/trucks.api';
 import LoginForm from './components/LoginForm';
 import AppShell from './components/AppShell';
 import ProtectedView from './components/ProtectedView';
 import AdminLayout from './layouts/AdminLayout';
 import UserList from './components/UserList';
 import UserForm from './components/UserForm';
+import TruckList from './components/TruckList';
+import TruckDetails from './components/TruckDetails';
+import TruckForm from './components/TruckForm';
 
 export default function App() {
     const [session, setSession] = useState(null);
@@ -18,10 +22,18 @@ export default function App() {
     const [users, setUsers] = useState([]);
     const [isUsersLoading, setIsUsersLoading] = useState(false);
     const [usersError, setUsersError] = useState('');
-
     const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [isUserSubmitting, setIsUserSubmitting] = useState(false);
     const [createUserError, setCreateUserError] = useState('');
+
+    const [trucks, setTrucks] = useState([]);
+    const [isTrucksLoading, setIsTrucksLoading] = useState(false);
+    const [trucksError, setTrucksError] = useState('');
+    const [selectedTruck, setSelectedTruck] = useState(null);
+    const [truckFormMode, setTruckFormMode] = useState(null);
+    const [isTruckSubmitting, setIsTruckSubmitting] = useState(false);
+    const [truckFormError, setTruckFormError] = useState('');
+    const [isArchiving, setIsArchiving] = useState(false);
 
     const loadUsers = async (token) => {
         setIsUsersLoading(true);
@@ -33,6 +45,19 @@ export default function App() {
         } catch (err) {
             setUsersError(err.message);
             setIsUsersLoading(false);
+        }
+    };
+
+    const loadTrucks = async (token) => {
+        setIsTrucksLoading(true);
+        setTrucksError('');
+        try {
+            const data = await getCamionsApi(token);
+            setTrucks(data);
+            setIsTrucksLoading(false);
+        } catch (err) {
+            setTrucksError(err.message);
+            setIsTrucksLoading(false);
         }
     };
 
@@ -62,11 +87,15 @@ export default function App() {
     };
 
     const handleLogout = async () => {
-        if (session?.token) {
-            await logoutApi(session.token);
+        const token = session?.token || session?.accessToken;
+        if (token) {
+            await logoutApi(token);
         }
         setSession(null);
         setUsers([]);
+        setTrucks([]);
+        setSelectedTruck(null);
+        setTruckFormMode(null);
         setIsCreatingUser(false);
         setAuthError('');
         setActiveTab('utilisateurs');
@@ -74,32 +103,80 @@ export default function App() {
 
     const handleTabChange = async (tab) => {
         setActiveTab(tab);
-        if (tab === 'utilisateurs' && session?.token) {
-            await loadUsers(session.token);
+        const token = session?.token || session?.accessToken;
+        if (!token) return;
+
+        if (tab === 'utilisateurs') {
+            await loadUsers(token);
+        } else if (tab === 'camions') {
+            await loadTrucks(token);
         }
     };
 
     const handleToggleStatus = async (id, currentStatut) => {
+        const token = session?.token || session?.accessToken;
         const nextStatut = currentStatut === 'actif' ? 'suspendu' : 'actif';
         try {
-            await updateChauffeurStatusApi(session.token, id, nextStatut);
-            await loadUsers(session.token);
+            await updateChauffeurStatusApi(token, id, nextStatut);
+            await loadUsers(token);
         } catch (err) {
             setUsersError(err.message);
         }
     };
 
     const handleCreateUser = async (formData) => {
+        const token = session?.token || session?.accessToken;
         setIsUserSubmitting(true);
         setCreateUserError('');
         try {
-            await createChauffeurApi(session.token, formData);
+            await createChauffeurApi(token, formData);
             setIsUserSubmitting(false);
             setIsCreatingUser(false);
-            await loadUsers(session.token);
+            await loadUsers(token);
         } catch (err) {
             setCreateUserError(err.message);
             setIsUserSubmitting(false);
+        }
+    };
+
+    const handleSelectTruck = (truck) => {
+        setSelectedTruck(truck);
+        setTruckFormMode(null);
+    };
+
+    const handleSaveTruck = async (formData) => {
+        const token = session?.token || session?.accessToken;
+        setIsTruckSubmitting(true);
+        setTruckFormError('');
+
+        try {
+            if (truckFormMode === 'edit' && selectedTruck) {
+                const updated = await updateCamionApi(token, selectedTruck._id || selectedTruck.id, formData);
+                setSelectedTruck(updated);
+            } else {
+                const created = await createCamionApi(token, formData);
+                setSelectedTruck(created);
+            }
+            setIsTruckSubmitting(false);
+            setTruckFormMode(null);
+            await loadTrucks(token);
+        } catch (err) {
+            setTruckFormError(err.message);
+            setIsTruckSubmitting(false);
+        }
+    };
+
+    const handleArchiveTruck = async (id) => {
+        const token = session?.token || session?.accessToken;
+        setIsArchiving(true);
+        try {
+            await archiveCamionApi(token, id);
+            setSelectedTruck(null);
+            setIsArchiving(false);
+            await loadTrucks(token);
+        } catch (err) {
+            setTrucksError(err.message);
+            setIsArchiving(false);
         }
     };
 
@@ -114,6 +191,8 @@ export default function App() {
             </div>
         );
     }
+
+    const currentToken = session.token || session.accessToken;
 
     return (
         <AppShell user={session.user} onLogout={handleLogout}>
@@ -138,7 +217,7 @@ export default function App() {
                                         isLoading={isUsersLoading}
                                         errorMessage={usersError}
                                         onToggleStatus={handleToggleStatus}
-                                        onRefresh={() => loadUsers(session.token)}
+                                        onRefresh={() => loadUsers(currentToken)}
                                         onOpenCreateForm={() => setIsCreatingUser(true)}
                                     />
                                 )}
@@ -146,10 +225,60 @@ export default function App() {
                         )}
 
                         {activeTab === 'camions' && (
-                            <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-2xl">
-                                <p className="text-slate-400 text-sm">
-                                    Section Parc de Camions (sera intégrée dans la prochaine étape US05).
-                                </p>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                    <TruckList
+                                        trucks={trucks}
+                                        selectedTruckId={selectedTruck?._id || selectedTruck?.id}
+                                        onSelectTruck={handleSelectTruck}
+                                        isLoading={isTrucksLoading}
+                                        errorMessage={trucksError}
+                                        onRefresh={() => loadTrucks(currentToken)}
+                                        onOpenCreate={() => {
+                                            setSelectedTruck(null);
+                                            setTruckFormMode('create');
+                                            setTruckFormError('');
+                                        }}
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    {truckFormMode ? (
+                                        <TruckForm
+                                            initialData={truckFormMode === 'edit' ? selectedTruck : null}
+                                            onSubmit={handleSaveTruck}
+                                            onCancel={() => {
+                                                setTruckFormMode(null);
+                                                setTruckFormError('');
+                                            }}
+                                            isLoading={isTruckSubmitting}
+                                            errorMessage={truckFormError}
+                                        />
+                                    ) : selectedTruck ? (
+                                        <TruckDetails
+                                            truck={selectedTruck}
+                                            onEdit={() => {
+                                                setTruckFormMode('edit');
+                                                setTruckFormError('');
+                                            }}
+                                            onArchive={handleArchiveTruck}
+                                            onClose={() => setSelectedTruck(null)}
+                                            isArchiving={isArchiving}
+                                        />
+                                    ) : (
+                                        <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-2xl">
+                                            <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3 text-sm font-semibold">
+                                                i
+                                            </div>
+                                            <p className="text-slate-300 font-medium text-sm">
+                                                Aucun camion sélectionné
+                                            </p>
+                                            <p className="text-slate-500 text-xs mt-1">
+                                                Cliquez sur une ligne du tableau pour afficher sa fiche détaillée et ses actions.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </AdminLayout>
