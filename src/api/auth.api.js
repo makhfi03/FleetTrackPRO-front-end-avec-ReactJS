@@ -7,7 +7,7 @@ export const loginApi = async (email, password) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, motDePasse: password })
         });
 
         const data = await response.json().catch(() => ({}));

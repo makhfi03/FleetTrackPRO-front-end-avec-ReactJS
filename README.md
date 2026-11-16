@@ -33,7 +33,7 @@ L'application est accessible par défaut sur `http://localhost:5173`.
 | :--- | :--- |
 | **Base URL** | `http://localhost:5001/api/v1` |
 | **CORS** | Autorisé pour `http://localhost:5173` sur le serveur Express |
-| **Authentification** | `POST /api/v1/auth/login` (Body JSON : `{ email, password }`) |
+| **Authentification** | `POST /api/v1/auth/login` (Body JSON : `{ email, motDePasse }`) |
 | **Session & Token** | JWT Bearer transporté via l'en-tête `Authorization: Bearer <token>`. Session conservée **strictement en mémoire** (state React) conformément aux exigences de sécurité |
 | **Identité & Rôles** | Champ `role` présent dans l'objet utilisateur (`admin` ou `chauffeur`) |
 | **Déconnexion** | `POST /api/v1/auth/logout` + purge de l'état en mémoire côté client |
@@ -51,7 +51,7 @@ L'application est accessible par défaut sur `http://localhost:5173`.
   ```json
   {
     "email": "admin@fleettrack.pro",
-    "password": "Password123!"
+    "motDePasse": "Password123!"
   }
   ```
 - **Réponse Succès (200 OK)** :
