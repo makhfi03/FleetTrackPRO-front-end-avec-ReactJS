@@ -28,7 +28,11 @@ export const loginApi = async (email, password) => {
             throw error;
         }
 
-        return data.data;
+        const token = data.data.accessToken || data.data.token;
+        return {
+            ...data.data,
+            token
+        };
     } catch (err) {
         if (!err.status) {
             const networkError = new Error('Impossible de joindre le serveur API (vérifiez que le backend est actif)');

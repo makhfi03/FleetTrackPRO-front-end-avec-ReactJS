@@ -45,9 +45,10 @@ export default function App() {
             setSession(data);
             setIsAuthLoading(false);
 
+            const userToken = data.token || data.accessToken;
             if (data.user.role === 'admin') {
                 setActiveTab('utilisateurs');
-                await loadUsers(data.token);
+                await loadUsers(userToken);
             } else {
                 setActiveTab('trajets');
             }
