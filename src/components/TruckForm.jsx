@@ -26,13 +26,20 @@ export default function TruckForm({
             return;
         }
 
-        const payload = {
-            matricule: matricule.trim(),
-            marque: marque.trim(),
-            modele: modele.trim(),
-            kilometrage: Number(kilometrage) || 0,
-            statut
-        };
+        const payload = isEdit
+            ? {
+                  marque: marque.trim(),
+                  modele: modele.trim(),
+                  kilometrage: Number(kilometrage) || 0,
+                  statut
+              }
+            : {
+                  matricule: matricule.trim(),
+                  marque: marque.trim(),
+                  modele: modele.trim(),
+                  kilometrage: Number(kilometrage) || 0,
+                  statut
+              };
 
         await onSubmit(payload);
     };
