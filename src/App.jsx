@@ -214,6 +214,7 @@ export default function App() {
                                 ) : (
                                     <UserList
                                         users={users}
+                                        currentUser={session.user}
                                         isLoading={isUsersLoading}
                                         errorMessage={usersError}
                                         onToggleStatus={handleToggleStatus}

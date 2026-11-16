@@ -99,9 +99,7 @@ export default function LoginForm({ onLogin, isLoading, errorMessage }) {
                     </button>
                 </form>
 
-                <div className="mt-8 pt-6 border-t border-slate-700/60 text-center">
-                    */}
-                </div>
+                <div className="mt-8 pt-6 border-t border-slate-700/60 text-center"></div>
             </div>
         </div>
     );

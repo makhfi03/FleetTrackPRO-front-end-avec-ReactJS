@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export default function UserList({
     users,
+    currentUser,
     isLoading,
     errorMessage,
     onToggleStatus,
@@ -24,6 +25,35 @@ export default function UserList({
 
     return (
         <div className="space-y-4">
+            {currentUser && (
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-sm">
+                            ADM
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="font-bold text-white text-sm">
+                                    {currentUser.prenom} {currentUser.nom || currentUser.email}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-950/70 text-purple-300 border border-purple-500/40">
+                                    {currentUser.role}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/70 text-emerald-300 border border-emerald-500/40">
+                                    {currentUser.statut || 'actif'}
+                                </span>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                                Compte Administrateur système connecté ({currentUser.email})
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-xs text-slate-500 italic max-w-xs text-left sm:text-right">
+                        Écriture et création d'admins non exposées par l'API v1 (écart consigné dans le contrat).
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div className="flex flex-wrap items-center gap-3 flex-1">
                     <input
