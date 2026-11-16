@@ -131,3 +131,41 @@ App (Session en mémoire, vueActive, notifications)
     └── DriverLayout (Espace Chauffeur sécurisé)
         └── DriverTrips (Mes trajets assignés, sans accès aux données Admin)
 ```
+
+
+---
+
+## 6. Plan de Tests Manuels Rempli & Preuves de Sécurité
+
+Conformément aux exigences du brief, voici la validation des scénarios réels sur l'application et la preuve de protection au niveau du serveur :
+
+| Scénario | Action effectuée | Résultat attendu | Résultat observé | Statut |
+| :--- | :--- | :--- | :--- | :---: |
+| **Login invalide** | Saisie d'un mauvais mot de passe (`admin@flotte.com` / `WrongPass`) | Refus HTTP 401, message clair, aucun layout ouvert | Message d'erreur visible, formulaire conservé | **CONFORME** |
+| **Admin valide** | Connexion avec `admin@flotte.com` / `Admin123!` | Ouverture du layout Admin avec données réelles | Layout Admin affiché, chargement effectif des chauffeurs | **CONFORME** |
+| **Chauffeur valide** | Connexion avec `chauffeur@flotte.com` / `Chauffeur123!` | Espace Chauffeur ouvert ; aucune vue Admin accessible | Layout Chauffeur dédié ouvert, aucun composant Admin | **CONFORME** |
+| **Chauffeur suspendu** | Connexion avec `suspendu@flotte.com` / `Chauffeur123!` | Refus HTTP 403, aucune session initialisée | Message d'erreur bloquant « Accès refusé : compte suspendu » | **CONFORME** |
+| **Session expirée** | Rechargement (`F5`) ou tentative avec token expiré | Retour à la connexion ou refus 401 | Retour automatique au formulaire de connexion | **CONFORME** |
+| **Utilisateur invalide** | Soumission avec champs manquants | Erreurs de validation, saisie conservée | Validation de présence affichée, champs saisis conservés | **CONFORME** |
+| **Chauffeur créé** | Soumission du formulaire d'ajout chauffeur | Compte créé via `POST /chauffeurs` et visible en liste | Nouveau chauffeur présent dans le tableau après réponse 201 | **CONFORME** |
+| **Compte Admin** | Consultation de sa fiche | Rôle visible, limitation documentée | Fiche avec badge `admin` visible, mention de contrat affichée | **CONFORME** |
+| **Camion refusé** | Tentative de modification du matricule | Refus HTTP 400 (`"matricule" is not allowed`), champs conservés | Message explicite sans faux succès, formulaire préservé | **CONFORME** |
+| **Camion valide** | Création, modification et archivage | Synchronisation immédiate avec l'API | Données mises à jour dans la liste et le panneau de détail | **CONFORME** |
+| **Déconnexion** | Clic sur le bouton « Déconnexion » | Session et token purgés en mémoire | Retour immédiat au formulaire de connexion | **CONFORME** |
+| **Accessibilité & Responsive** | Navigation clavier et test écran mobile | Focus visible, labels clairs, pas de défilement horizontal | Affichage adapté en colonne unique sur mobile et 2 colonnes sur bureau | **CONFORME** |
+
+### Preuve du contrôle d'accès direct sur le backend (HTTP 403 Forbidden) :
+Le brief stipule : *« Masquer un bouton React ne prouve pas la protection du serveur. »*  
+Lorsqu'un token Chauffeur tente d'appeler directement un endpoint d'administration :
+```bash
+curl -X GET http://localhost:5001/api/v1/chauffeurs \
+  -H "Authorization: Bearer <TOKEN_CHAUFFEUR>"
+```
+**Réponse directe du serveur Express :**
+```json
+{
+  "status": "fail",
+  "message": "Accès refusé : vous n'avez pas les autorisations nécessaires."
+}
+```
+*(Code HTTP HTTP/1.1 403 Forbidden).*
