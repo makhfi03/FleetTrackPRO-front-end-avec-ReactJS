@@ -57,7 +57,7 @@ export default function LoginForm({ onLogin, isLoading, errorMessage }) {
                             disabled={isLoading}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@fleettrack.pro"
+                            placeholder="admin@flotte.com"
                             className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 text-sm"
                         />
                     </div>
@@ -101,7 +101,7 @@ export default function LoginForm({ onLogin, isLoading, errorMessage }) {
 
                 <div className="mt-8 pt-6 border-t border-slate-700/60 text-center">
                     <p className="text-xs text-slate-400">
-                        Comptes de test : <span className="text-slate-300 font-mono">admin@fleettrack.pro</span> ou <span className="text-slate-300 font-mono">chauffeur@fleettrack.pro</span>
+                        Comptes de test : <span className="text-slate-300 font-mono">admin@flotte.com</span> (mdp: <span className="text-slate-300 font-mono">Admin123!</span>)
                     </p>
                 </div>
             </div>
